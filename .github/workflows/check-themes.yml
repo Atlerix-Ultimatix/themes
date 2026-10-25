@@ -1,0 +1,22 @@
+name: check-themes
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Check every theme
+        shell: bash
+        run: |
+          shopt -s nullglob
+          files=(themes/*/*.atlas-theme.json)
+          if [ ${#files[@]} -eq 0 ]; then echo "No theme yet."; exit 0; fi
+          node check-theme.mjs "${files[@]}"

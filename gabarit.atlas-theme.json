@@ -1,0 +1,25 @@
+{
+  "format": 1,
+  "nom": "Mon thème",
+  "auteur": "Votre nom ou pseudonyme",
+  "licence": "CC0-1.0",
+  "version": "1.0.0",
+  "theme": {
+    "fontFamily": "'Inter Variable', ui-sans-serif, system-ui, sans-serif",
+    "prefersDark": false,
+    "accent": "#4f46e5",
+    "neutrals": { "hue": 260, "chroma": 0.5 },
+    "surfaces": {
+      "menu": { "mode": "exact", "hex": "#1e1b4b" },
+      "fond": { "mode": "exact", "hex": "#f5f5fb" },
+      "carte": { "mode": "exact", "hex": "#ffffff" }
+    },
+    "surfacesSombre": {
+      "fond": { "mode": "exact", "hex": "#0f0e1f" },
+      "carte": { "mode": "exact", "hex": "#18172e" }
+    },
+    "shape": { "card": "0.75rem", "control": "0.375rem" },
+    "flat": false
+  },
+  "css": ".surface-carte { border-color: var(--color-primary-200); }\nh1 { letter-spacing: -0.01em; }"
+}
