@@ -48,7 +48,7 @@ example "Tribute to <work>"). In return, these rules are strict:
 
 ## The file
 
-A JSON object in UTF-8, **256 KB at most** in all.
+A JSON object in UTF-8, **512 KB at most** in all.
 
 | Field | Required | Rule |
 |---|---|---|
@@ -57,7 +57,7 @@ A JSON object in UTF-8, **256 KB at most** in all.
 | `auteur`, `licence`, `version` | no | author, licence, version: text of 80 characters at most; a free licence is recommended (`CC0-1.0`, `CC-BY-4.0`) |
 | `theme` | yes | see below |
 | `css` | no | stylesheet, 64 KB at most, see the rules |
-| `images` | no | 8 images at most, see the rules |
+| `images` | no | 8 images at most, plus 24 menu icons, see the rules |
 
 **No other field is accepted**, neither at the top of the file nor inside `theme`.
 
@@ -207,10 +207,28 @@ An object `{ "name": "data:image/png;base64,…" }`:
 - name in lowercase letters, digits and hyphens, 32 characters at most;
 - **PNG, JPEG, WebP or GIF only**, base64-encoded inside the file itself; **no SVG**;
 - the content must really be the announced type (it is checked byte by byte);
-- 96 KB at most per image once decoded, 8 images at most.
+- 96 KB at most per image once decoded, 8 images at most (menu icons have their own allowance, below).
 
 In the stylesheet, an image is used through its variable: `background-image: var(--image-<name>);`.
 A small repeated pattern (`background-size: 8px 8px`) costs little and looks good.
+
+### Menu icons (`icon-<route>`)
+
+An image whose name starts with `icon-` **replaces a module's icon in the left menu**. The
+stylesheet cannot do this (it can neither hide nor resize an element): the application itself
+draws the image in place of the glyph, inside its 17 px box.
+- the name follows the module's **route**, never its label: `icon-repairs` (Repairs),
+  `icon-mes-reparations` (My repairs), `icon-clients`, `icon-appointments`, `icon-to-call`,
+  `icon-todo`, `icon-schedule`, `icon-counter` (Point of sale), `icon-inbox`,
+  `icon-parts-orders`, `icon-inventory`, `icon-revente` (Refurb), `icon-pieces-defectueuses`
+  (Defective parts), `icon-branches`, `icon-diagnostics`, `icon-calculateur-prix` (Price
+  calculator), `icon-comparateur` (Comparator), `icon-microsoudure` (Micro-soldering),
+  `icon-wiki`; a sub-route takes hyphens (`icon-inventory-products`); the route `/` is `icon-home`;
+- **24 icons at most, 12 KB at most each**, on top of the 8 images above; same formats, still no SVG;
+- draw them square, **64 × 64 px, transparent background**: sharp at every screen density;
+- a module with no `icon-…` keeps its own icon; they are used in the left menu only;
+- an icon stays an icon: readable at 17 px, one style family for all of them, and the same idea
+  as the module it replaces (a rocket for repairs, not for the point of sale).
 
 ## What you deliver
 

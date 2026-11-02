@@ -49,7 +49,7 @@ Ce dépôt accepte les **thèmes de fans**. Le nom de l'œuvre peut figurer dans
 
 ## Le fichier
 
-Un objet JSON en UTF-8, **256 Ko au plus** en tout.
+Un objet JSON en UTF-8, **512 Ko au plus** en tout.
 
 | Champ | Obligatoire | Règle |
 |---|---|---|
@@ -58,7 +58,7 @@ Un objet JSON en UTF-8, **256 Ko au plus** en tout.
 | `auteur`, `licence`, `version` | non | texte de 80 caractères au plus ; licence libre recommandée (`CC0-1.0`, `CC-BY-4.0`) |
 | `theme` | oui | voir ci-dessous |
 | `css` | non | feuille de style, 64 Ko au plus, voir les règles |
-| `images` | non | au plus 8 images, voir les règles |
+| `images` | non | au plus 8 images, plus 24 icônes du menu, voir les règles |
 
 **Aucun autre champ n'est accepté**, ni en haut du fichier, ni dans `theme`.
 
@@ -208,10 +208,29 @@ Un objet `{ "nom": "data:image/png;base64,…" }` :
 - nom en minuscules, chiffres et tirets, 32 caractères au plus ;
 - **PNG, JPEG, WebP ou GIF seulement**, encodé en base64 dans le fichier même ; **pas de SVG** ;
 - le contenu doit être vraiment du type annoncé (il est vérifié octet par octet) ;
-- 96 Ko au plus par image une fois décodée, 8 images au plus.
+- 96 Ko au plus par image une fois décodée, 8 images au plus (les icônes du menu ont leur propre quota, ci-dessous).
 
 Dans la feuille, une image s'emploie par sa variable : `background-image: var(--image-<nom>);`.
 Un petit motif répété (`background-size: 8px 8px`) coûte peu et rend bien.
+
+### Les icônes du menu (`icon-<route>`)
+
+Une image dont le nom commence par `icon-` **remplace l'icône d'un module dans le menu latéral**.
+La feuille ne peut pas le faire (elle ne peut ni masquer ni redimensionner un élément) : c'est
+l'application qui dessine l'image à la place du pictogramme, dans sa case de 17 px.
+- le nom suit la **route** du module, jamais son libellé : `icon-repairs` (Réparations),
+  `icon-mes-reparations`, `icon-clients`, `icon-appointments` (Rendez-vous), `icon-to-call`
+  (À appeler), `icon-todo` (Choses à faire), `icon-schedule` (Horaire), `icon-counter` (Caisse),
+  `icon-inbox` (Boîte de réception), `icon-parts-orders` (Commandes de pièces), `icon-inventory`,
+  `icon-revente`, `icon-pieces-defectueuses`, `icon-branches`, `icon-diagnostics`,
+  `icon-calculateur-prix`, `icon-comparateur`, `icon-microsoudure`, `icon-wiki` ; une sous-route
+  prend des tirets (`icon-inventory-products`) ; la route `/` s'appelle `icon-home` ;
+- **24 icônes au plus, 12 Ko au plus chacune**, en plus des 8 images ci-dessus ; mêmes formats,
+  toujours pas de SVG ;
+- dessine-les carrées, **64 × 64 px, fond transparent** : nettes à toutes les densités d'écran ;
+- un module sans `icon-…` garde son icône d'origine ; elles ne servent que dans le menu latéral ;
+- une icône reste une icône : lisible à 17 px, la même famille de style pour toutes, et la même
+  idée que le module qu'elle remplace (une fusée pour les réparations, pas pour la caisse).
 
 ## Ce que tu livres
 

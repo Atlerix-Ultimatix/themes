@@ -1,8 +1,11 @@
-// Atlas L1 — standalone checker for .atlas-theme.json files.
+// Atlas L1 — standalone checker for .atlas-theme.json files. GENERATED, do not edit:
+// rebuild with `node scripts/build-theme-checker.mjs` in the Atlas L1 repository.
+// sources: f52184a811e8b1cd
 // Usage: node check-theme.mjs <file.atlas-theme.json> [more files…]   (exit 0 = all accepted)
 // Bundles css-tree 3.2.1 (MIT, Copyright (C) 2016-2024 by Roman Dvornov) and its
 // CSS syntax data (mdn-data, CC0-1.0). The rest is Atlas L1 code, shared as is for checking themes.
 import { readFileSync } from "node:fs";
+// frontend/node_modules/css-tree/dist/csstree.esm.js
 var Us = Object.create;
 var cr = Object.defineProperty;
 var Hs = Object.getOwnPropertyDescriptor;
@@ -7356,6 +7359,7 @@ function hd(e) {
 	return t;
 }
 var { tokenize: uy, parse: py, generate: hy, lexer: my, createLexer: dy, walk: fy, find: gy, findLast: by, findAll: yy, toPlainObject: xy, fromPlainObject: ky, fork: wy } = Ws;
+// frontend/src/commun/theme-css-guard.ts
 const THEME_SCOPE = ":root[data-theme=\"importe\"]";
 const PREFILTER = /@(?:import|font-face|namespace|charset|layer|property)\b|url\s*\(|image-set\s*\(|\bsrc\s*:|-moz-binding|(?<![-\w])behavior\s*:|expression\s*\(|javascript:|<|\\/i;
 const ALLOWED_AT_RULES = [
@@ -7378,7 +7382,7 @@ const FORBIDDEN_FUNCTIONS = [
 	"attr",
 	"env"
 ];
-const APP_VARIABLE = /^--(?:surface-[a-z-]+|color-[a-z]+-\d{2,3}|radius-[a-z]+|font-app|image-[a-z0-9-]+)$/;
+const APP_VARIABLE = /^--(?:surface-[a-z-]+|color-[a-z]+-\d{2,3}|radius-[a-z]+|font-app|image-[a-z0-9-]+|ease-(?:out|in-out|drawer))$/;
 const CONTENT_ALLOWED = /^(?:""|''|none|normal|var\(--image-[a-z0-9-]+\))$/;
 /** px for a length; rem and em count as 16 px; null when the token is not a length. */
 function lengthPx(token) {
@@ -7546,7 +7550,7 @@ const KEYFRAME_PROPERTIES = [
 	"opacity"
 ];
 /**
-* THE MENU KEEPS ITS OWN COLOUR. The app picks the ink of the menu's
+* THE MENU KEEPS ITS OWN COLOUR (Elouan, 12 October 2026). The app picks the ink of the menu's
 * labels from the menu colour it set — the theme's, or the shop's own when the shop chose one. A
 * sheet that paints the menu with a fixed opaque colour on top leaves that ink on the wrong ground:
 * dark labels on a black menu. So on the menu a background layer is either derived from
@@ -7728,14 +7732,25 @@ function guardThemeCss(css) {
 		css: hy(ast)
 	};
 }
+// frontend/src/commun/theme-file.ts
+/**
+* `icons` and `icon` are a second allowance, apart from the eight decorative images: an image named
+* `icon-<module>` replaces that module's icon in the sidebar (commun/theme-icons.ts). The app, not the
+* stylesheet, places it at the size of the glyph it stands for — which is why a small file is enough,
+* and why `file` grew from 256 KB to make room for a full set.
+*/
 const LIMITS = {
-	file: 262144,
+	file: 524288,
 	css: 65536,
 	image: 98304,
 	images: 8,
+	icon: 12288,
+	icons: 24,
 	name: 40,
 	field: 80
 };
+/** The prefix that makes an image a sidebar icon. Kept here, beside the limits it selects. */
+const ICON_IMAGE_PREFIX = "icon-";
 /** The first family of `fontFamily` must be one the app ships (or a system face): no font is ever fetched. */
 const ALLOWED_FONT_HEADS = [
 	"Inter Variable",
@@ -7904,9 +7919,14 @@ function imagesProblem(v) {
 		detail: "images is not an object"
 	};
 	const names = Object.keys(v);
-	if (names.length > LIMITS.images) return {
+	const icons = names.filter((n) => n.startsWith(ICON_IMAGE_PREFIX)).length;
+	if (names.length - icons > LIMITS.images) return {
 		code: "images",
-		detail: `${names.length} images, ${LIMITS.images} at most`
+		detail: `${names.length - icons} images, ${LIMITS.images} at most`
+	};
+	if (icons > LIMITS.icons) return {
+		code: "images",
+		detail: `${icons} icons, ${LIMITS.icons} at most`
 	};
 	for (const name of names) {
 		if (!IMAGE_NAME.test(name)) return {
@@ -7921,9 +7941,10 @@ function imagesProblem(v) {
 		};
 		const b64 = m[2];
 		const decoded = Math.floor(b64.length * 3 / 4) - (b64.endsWith("==") ? 2 : b64.endsWith("=") ? 1 : 0);
-		if (decoded > LIMITS.image) return {
+		const most = name.startsWith("icon-") ? LIMITS.icon : LIMITS.image;
+		if (decoded > most) return {
 			code: "image_size",
-			detail: `${name} weighs ${decoded} bytes, ${LIMITS.image} at most`
+			detail: `${name} weighs ${decoded} bytes, ${most} at most`
 		};
 	}
 	return null;
@@ -7965,6 +7986,7 @@ function readThemeFile(text) {
 		file: value
 	};
 }
+// frontend/src/commun/brandColor.ts
 /**
 * Turns the shop's branding color (Réglages > Général, one hex value) into the
 * full `--color-primary-*` scale the interface runs on since the token pass.
@@ -8007,6 +8029,7 @@ function hexToOklch(hex) {
 		h: (Math.atan2(okB, okA) * 180 / Math.PI + 360) % 360
 	};
 }
+// frontend/src/commun/apparence.ts
 /**
 * La plage de clarté de chaque surface, et la saturation qu'elle supporte.
 *
@@ -8109,7 +8132,7 @@ function deriverSurface(nom, reglage, theme) {
 		const clarte = couleur.l * 100;
 		/**
 		* THE CHARTER COLOUR IS HONOURED AS IS BY DAY. At night only its hue is kept, on the
-		* « Expresso » night: a light bar no longer stays lit in the dark, and
+		* « Expresso » night (Elouan, 5 October 2026): a light bar no longer stays lit in the dark, and
 		* the page and the cards are very dark with a trace of the hue — a cream used to come out as
 		* a mid, saturated brown. A dark bar keeps its exact colour at night too.
 		*/
@@ -8130,6 +8153,7 @@ function construire(clarte, chroma, teinte) {
 		clarte
 	};
 }
+// frontend/src/commun/contrast.ts
 /**
 * The measuring instrument behind the design system's contrast guard (task 8:
 * a build-time checker that refuses a theme it cannot read). Converts an
@@ -8211,6 +8235,7 @@ function contrastRatio(a, b) {
 	const darker = Math.min(luminanceA, luminanceB);
 	return (lighter + .05) / (darker + .05);
 }
+// frontend/src/commun/theme-file-contrast.ts
 /**
 * LEGIBILITY OF AN IMPORTED THEME (spec 2026-10-07-themes-installables § 2): each of the three
 * surfaces, by day and by night, must carry its ink at 4.5:1 at least — the same floor as the
@@ -8258,6 +8283,7 @@ function themeFileContrast(file) {
 	}
 	return null;
 }
+// frontend/src/commun/theme-check.ts
 function checkThemeText(text) {
 	const read = readThemeFile(text);
 	if (!read.ok) return {
@@ -8286,6 +8312,7 @@ function checkThemeText(text) {
 		images: Object.keys(read.file.images ?? {}).length
 	};
 }
+// scripts/theme-checker-cli.mjs
 /**
 * The command line of the standalone theme checker (spec 2026-10-07-themes-installables § 6):
 *   node check-theme.mjs <file.atlas-theme.json> [more files…]
